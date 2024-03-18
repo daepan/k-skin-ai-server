@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from mysql.connector import connect
+import pymysql
 from dotenv import load_dotenv
 import os
 import torch
@@ -14,17 +14,18 @@ app = Flask(__name__)
 
 # 데이터베이스 연결 함수
 def get_db_connection():
-    connection = connect(
+    connection = pymysql.connect(
         host=os.getenv('DB_HOST'),
-        database=os.getenv('DB_NAME'),
+        db=os.getenv('DB_NAME'),
         user=os.getenv('DB_USER'),
-        password=os.getenv('DB_PASSWORD')
+        passwd=os.getenv('DB_PASSWORD'),
+        charset='utf8mb4',
+        cursorclass=pymysql.cursors.DictCursor
     )
     return connection
 
 # 이미지 분석 모델 로드 (실제 모델 로드 로직에 따라 다를 수 있음)
-model = torch.load('model_path.pt')
-model.eval()
+model = torch.load('models_train/petom_weights.pt')
 
 def transform_image(image_bytes):
     my_transforms = transforms.Compose([

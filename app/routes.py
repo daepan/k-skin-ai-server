@@ -24,8 +24,9 @@ def get_db_connection():
     )
     return connection
 
-# 이미지 분석 모델 로드 (실제 모델 로드 로직에 따라 다를 수 있음)
-model = torch.load('models_train/petom_weights.pt')
+
+model = torch.hub.load('ultralytics/yolov5', 'custom', path='models_train/petom_weights.pt', force_reload=True)
+
 
 def transform_image(image_bytes):
     my_transforms = transforms.Compose([
@@ -77,3 +78,31 @@ def check_pet_skin():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/detect', methods=['GET', 'POST'])
+def detect():
+    if request.method == 'POST':
+        # 파일이 요청에 포함되어 있는지 확인
+        if 'file' not in request.files:
+            return jsonify({"error": "no file part"}), 400
+
+        im_file = request.files['file']
+        
+        # 파일 이름이 비어 있는지 확인
+        if im_file.filename == '':
+            return jsonify({"error": "no file selected"}), 400
+
+        im_bytes = im_file.read()
+        img = Image.open(io.BytesIO(im_bytes))
+
+        # 모델로 이미지 분석 실행
+        results = model(img, size=640)
+
+        # 분석 결과 처리 및 JSON 형식으로 결과 반환
+        # 여기서는 예시로 간단한 메시지만 반환하지만, 실제 사용 사례에 따라 분석 결과를 상세하게 포맷팅할 수 있습니다.
+        results_data = {"message": "Image processed successfully."}
+        return jsonify(results_data)
+
+    else:
+        # GET 요청의 경우, 단순 메시지 반환
+        return jsonify({"message": "Please use POST request to analyze images."})

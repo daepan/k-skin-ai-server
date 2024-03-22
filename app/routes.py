@@ -47,6 +47,10 @@ def analyze_image(image_bytes):
     # 예시: '질환 이름'과 확률 90.5%를 반환합니다. 실제 로직은 모델의 출력에 맞게 수정해야 합니다.
     return "질환 이름", 90.5
 
+@app.route("/")
+def hello():
+    return "<h1>Hello!</h1>"
+
 @app.route('/data')
 def get_data():
     conn = get_db_connection()
